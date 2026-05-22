@@ -19,7 +19,7 @@
             --text-main: #FFFFFF;
             --text-sub: #8E9AA8;
             
-            /* Status Colors (Bisa dimanipulasi via JS nanti) */
+            /* Status Colors */
             --online-color: #00E676;
             --offline-color: #FF1744;
         }
@@ -157,17 +157,17 @@
         .status-pulse {
             width: 10px;
             height: 10px;
-            background-color: var(--online-color);
+            background-color: var(--accent); /* Default warna transisi awal */
             border-radius: 50%;
             display: inline-block;
-            box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.5);
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.5);
             animation: pulse-ring 2s infinite;
         }
 
         @keyframes pulse-ring {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.5); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.5); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
         }
 
         .server-status-text {
@@ -178,7 +178,6 @@
             color: var(--text-main);
         }
 
-        /* TARGET ID JUMLAH PLAYER UNTUK SCRIPT KAMU */
         .player-count {
             color: var(--accent);
             font-weight: 800;
@@ -436,7 +435,7 @@
                 <div class="live-status-badge" id="server-status-container">
                     <div class="status-pulse" id="status-indicator-dot"></div>
                     <span class="server-status-text" id="status-text-field">
-                        ONLINE &bull; <span class="player-count" id="live-players">1,287</span> PLAYERS
+                        CHECKING STATUS...
                     </span>
                 </div>
 
@@ -505,6 +504,40 @@
                 console.error("Gagal menyalin IP: ", err);
             });
         }
+
+        function updateServerStatus() {
+            const ipServer = "play.hydlesmp.fun";
+            const dot = document.getElementById('status-indicator-dot');
+            const textField = document.getElementById('status-text-field');
+            
+            // Langsung fetch data dari API pihak ketiga tanpa butuh PHP backend lagi
+            fetch(`https://api.mcsrvstat.us/3/${ipServer}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.online) {
+                        // Jika panel server menyala / online
+                        dot.style.backgroundColor = 'var(--online-color)';
+                        dot.style.boxShadow = '0 0 0 0 rgba(0, 230, 118, 0.5)';
+                        textField.innerHTML = `ONLINE &bull; <span class="player-count">${data.players.online}</span> PLAYERS`;
+                    } else {
+                        // KONDISI JIKA SERVER MATI ATAU BELUM SIAP (UBAH JADI COMING SOON)
+                        dot.style.backgroundColor = 'var(--accent)';
+                        dot.style.boxShadow = '0 0 0 0 rgba(255, 193, 7, 0.5)';
+                        textField.innerHTML = `<span style="color: var(--accent); font-weight:800;">COMING SOON</span> &bull; NEW ERA`;
+                    }
+                })
+                .catch(error => {
+                    // Jika terjadi kegagalan jaringan, paksa tetep tulis COMING SOON
+                    console.error('Gagal memuat status:', error);
+                    dot.style.backgroundColor = 'var(--accent)';
+                    textField.innerHTML = `<span style="color: var(--accent); font-weight:800;">COMING SOON</span> &bull; NEW ERA`;
+                });
+        }
+
+        // Jalankan fungsi saat web dibuka
+        updateServerStatus();
+        // Cek berkala setiap 30 detik
+        setInterval(updateServerStatus, 30000);
     </script>
 </body>
 </html>
